@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { useTheme } from '../../context/ThemeContext';
+import { AnimatedGradient } from '../../components/ui/AnimatedGradient';
 
 export default function Index() {
   const [serverStatus, setServerStatus] = useState('Checking server...');
@@ -22,12 +23,14 @@ export default function Index() {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.card, { backgroundColor: theme.card }]}>
-        <Text style={[styles.text, { color: theme.text }]}>Vibe Pet App Setup</Text>
-        <Text style={[styles.status, { color: theme.primary }]}>{serverStatus}</Text>
-      </View>
-    </SafeAreaView>
+    <AnimatedGradient>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <Text style={[styles.text, { color: theme.text }]}>Vibe Pet App Setup</Text>
+          <Text style={[styles.status, { color: theme.primary }]}>{serverStatus}</Text>
+        </View>
+      </SafeAreaView>
+    </AnimatedGradient>
   );
 }
 
