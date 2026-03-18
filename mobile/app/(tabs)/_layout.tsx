@@ -18,10 +18,10 @@ export default function TabLayout() {
         headerShadowVisible: false,
         headerRight: () => (
           <Pressable onPress={toggleTheme} style={{ marginRight: 15 }}>
-            <MaterialCommunityIcons 
-              name={themeType === 'light' ? 'dog' : 'cat'} 
-              size={24} 
-              color={theme.text} 
+            <MaterialCommunityIcons
+              name={themeType === 'light' ? 'dog' : 'cat'}
+              size={24}
+              color={theme.text}
             />
           </Pressable>
         ),

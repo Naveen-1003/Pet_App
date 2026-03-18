@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -37,6 +37,19 @@ export function AnimatedGradient({ children, style }: AnimatedGradientProps) {
       end: { x: 1 - progress.value * 0.5, y: 1 - progress.value * 0.5 },
     };
   });
+
+  if (Platform.OS === 'web') {
+    return (
+      <LinearGradient
+        colors={[theme.gradientStart, theme.gradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.container, style]}
+      >
+        {children}
+      </LinearGradient>
+    );
+  }
 
   return (
     <AnimatedLinearGradient
