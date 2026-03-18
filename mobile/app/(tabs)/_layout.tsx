@@ -34,16 +34,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="compass" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="offerings"
         options={{
-          title: 'Services',
+          title: 'Events & Services',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="paw" size={24} color={color} />,
         }}
       />
