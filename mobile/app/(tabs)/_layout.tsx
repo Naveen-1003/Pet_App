@@ -30,12 +30,21 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="home" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="compass" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="offerings"
+        options={{
+          title: 'Services',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="paw" size={24} color={color} />,
         }}
       />
     </Tabs>

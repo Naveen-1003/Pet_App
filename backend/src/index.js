@@ -18,6 +18,17 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Fetch all events and services
+app.get('/api/offerings', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM Offerings ORDER BY created_at DESC');
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error("Error fetching offerings:", error.message);
+        res.status(500).json({ status: 'Database fetching failed', error: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);

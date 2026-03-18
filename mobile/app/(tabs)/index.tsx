@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Platform } from 'react-native';
 // 1. Updated Import: Pull SafeAreaView from the modern context library
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
-import Constants from 'expo-constants';
+import { getBackendUrl } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
 import { AnimatedGradient } from '../../components/ui/AnimatedGradient';
 
@@ -12,22 +12,7 @@ export default function Index() {
   const { theme } = useTheme();
 
   useEffect(() => {
-    // Dynamically determine the backend URL based on platform
-    let localIp = 'localhost';
-    const hostUri = Constants.expoConfig?.hostUri;
-    
-    if (hostUri) {
-      localIp = hostUri.split(':')[0];
-    }
-    
-    let backendUrl = `http://${localIp}:3000/api/health`;
-    
-    if (Platform.OS === 'web') {
-      backendUrl = 'http://localhost:3000/api/health';
-    } else if (Platform.OS === 'android' && !hostUri) {
-      // 10.0.2.2 is the special alias to your host loopback interface in Android emulators
-      backendUrl = 'http://10.0.2.2:3000/api/health';
-    }
+    const backendUrl = `${getBackendUrl()}/api/health`;
 
     axios.get(backendUrl)
       .then(response => setServerStatus(response.data.status))
