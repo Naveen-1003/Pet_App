@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const bookingRoutes = require('./routes/bookingRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const db = require('./config/db');
 
@@ -32,6 +33,9 @@ app.get('/api/offerings', async (req, res) => {
 
 // Booking Routes
 app.use('/api/bookings', bookingRoutes);
+
+// Subscription Routes
+app.use('/api/subscriptions', subscriptionRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

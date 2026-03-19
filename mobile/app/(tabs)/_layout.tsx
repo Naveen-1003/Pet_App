@@ -40,6 +40,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="paw" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="subscription"
+        options={{
+          title: 'Premium',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="star" size={24} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
