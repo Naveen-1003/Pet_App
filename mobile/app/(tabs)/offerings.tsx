@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
+import BookingModal from '../../components/BookingModal';
 
 interface Offering {
   id: number;
@@ -20,6 +21,8 @@ export default function OfferingsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOffering, setSelectedOffering] = useState<Offering | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   
   const { theme } = useTheme();
 
@@ -66,6 +69,16 @@ export default function OfferingsScreen() {
 
       <Text style={[styles.description, { color: theme.text + '99' }]}>{item.description}</Text>
       <Text style={[styles.provider, { color: theme.text + 'B3' }]}>By: {item.provider_name}</Text>
+      
+      <TouchableOpacity 
+        style={[styles.bookButton, { backgroundColor: theme.primary }]}
+        onPress={() => {
+          setSelectedOffering(item);
+          setModalVisible(true);
+        }}
+      >
+        <Text style={styles.bookButtonText}>Book Now</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -112,6 +125,11 @@ export default function OfferingsScreen() {
             <Text style={[styles.emptyText, { color: theme.text }]}>No upcoming events or services.</Text>
           </View>
         }
+      />
+      <BookingModal 
+        visible={modalVisible} 
+        offering={selectedOffering} 
+        onClose={() => setModalVisible(false)} 
       />
     </SafeAreaView>
   );
@@ -213,5 +231,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     opacity: 0.6,
+  },
+  bookButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  bookButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });

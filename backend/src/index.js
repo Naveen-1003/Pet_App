@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const bookingRoutes = require('./routes/bookingRoutes');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const db = require('./config/db');
 
@@ -28,6 +29,9 @@ app.get('/api/offerings', async (req, res) => {
         res.status(500).json({ status: 'Database fetching failed', error: error.message });
     }
 });
+
+// Booking Routes
+app.use('/api/bookings', bookingRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
