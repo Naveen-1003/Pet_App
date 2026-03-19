@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
@@ -11,19 +11,49 @@ export default function SubscriptionScreen() {
   const { theme } = useTheme();
   const { user, setIsSubscribed } = useUser();
   const [loading, setLoading] = useState(false);
+  const [paymentLinkId, setPaymentLinkId] = useState<string | null>(null);
 
   const handleSubscribe = async () => {
     setLoading(true);
     try {
-      const url = `${getBackendUrl()}/api/subscriptions/subscribe`;
-      const response = await axios.post(url, { user_id: 1, amount: 9.99 });
-      if (response.data.isSubscribed) {
-        setIsSubscribed(true);
-        Alert.alert("Success!", "Thank you for subscribing to Premium Pet Pass!");
+      const url = `${getBackendUrl()}/api/subscriptions/create-link`;
+      const response = await axios.post(url, { user_id: user?.id || 1 });
+      
+      if (response.data.success && response.data.short_url) {
+        // Open the Razorpay payment link in the browser
+        await Linking.openURL(response.data.short_url);
+        // Save the payment link ID for verification
+        setPaymentLinkId(response.data.id);
       }
     } catch (err: any) {
-      console.warn("Subscription failed:", err);
-      Alert.alert("Payment Failed", err.response?.data?.error || "Could not process subscription. Please try again.");
+      console.warn("Payment link creation failed:", err);
+      Alert.alert("Error", err.response?.data?.error || "Could not generate payment link.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!paymentLinkId) return;
+    setLoading(true);
+    try {
+      const url = `${getBackendUrl()}/api/subscriptions/verify-link`;
+      const response = await axios.post(url, { 
+        payment_link_id: paymentLinkId, 
+        user_id: user?.id || 1 
+      });
+      
+      if (response.data.success) {
+        setIsSubscribed(true);
+        setPaymentLinkId(null); // Reset after successful verification
+        Alert.alert("Success!", "Thank you for subscribing to Premium Pet Pass!");
+      } else {
+        // Payment not yet completed
+        Alert.alert("Payment Pending", response.data.message || "Payment not yet completed, please try again.");
+      }
+    } catch (err: any) {
+      console.warn("Verification failed:", err);
+      Alert.alert("Error", "Could not verify payment status.");
     } finally {
       setLoading(false);
     }
@@ -70,18 +100,38 @@ export default function SubscriptionScreen() {
                 <Text style={[styles.priceTag, { color: theme.text }]}>$9.99</Text>
                 <Text style={[styles.priceCycle, { color: theme.text + '99' }]}>/ month</Text>
               </View>
-              <TouchableOpacity 
-                style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
-                onPress={handleSubscribe}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.subscribeText}>Upgrade Now</Text>
-                )}
-              </TouchableOpacity>
-              <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Cancel anytime. Secure mock payment.</Text>
+              
+              {!paymentLinkId ? (
+                <>
+                  <TouchableOpacity 
+                    style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
+                    onPress={handleSubscribe}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={styles.subscribeText}>Upgrade Now</Text>
+                    )}
+                  </TouchableOpacity>
+                  <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Cancel anytime. Secure payment via Razorpay.</Text>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity 
+                    style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
+                    onPress={handleVerify}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={styles.subscribeText}>I Have Paid - Verify Status</Text>
+                    )}
+                  </TouchableOpacity>
+                  <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Complete your payment in the browser, then return here to verify.</Text>
+                </>
+              )}
             </View>
           )}
         </View>
