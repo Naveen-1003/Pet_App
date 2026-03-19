@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
 import BookingModal from '../../components/BookingModal';
+import { useUser } from '../../context/UserContext';
 
 interface Offering {
   id: number;
@@ -25,6 +26,7 @@ export default function OfferingsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   
   const { theme } = useTheme();
+  const { user } = useUser();
 
   const fetchOfferings = async () => {
     try {
@@ -73,8 +75,19 @@ export default function OfferingsScreen() {
       <TouchableOpacity 
         style={[styles.bookButton, { backgroundColor: theme.primary }]}
         onPress={() => {
-          setSelectedOffering(item);
-          setModalVisible(true);
+          if (user?.isSubscribed) {
+            setSelectedOffering(item);
+            setModalVisible(true);
+          } else {
+            Alert.alert(
+              "Subscription Required",
+              "You must be a premium subscriber to book events and services.",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Subscribe Now", onPress: () => console.log('Navigate to subscription screen') }
+              ]
+            );
+          }
         }}
       >
         <Text style={styles.bookButtonText}>Book Now</Text>
