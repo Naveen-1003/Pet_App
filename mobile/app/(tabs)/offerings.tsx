@@ -5,6 +5,7 @@ import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
 import BookingModal from '../../components/BookingModal';
+import SubscriptionModal from '../../components/SubscriptionModal';
 import { useUser } from '../../context/UserContext';
 
 interface Offering {
@@ -24,6 +25,7 @@ export default function OfferingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedOffering, setSelectedOffering] = useState<Offering | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
   
   const { theme } = useTheme();
   const { user } = useUser();
@@ -79,14 +81,7 @@ export default function OfferingsScreen() {
             setSelectedOffering(item);
             setModalVisible(true);
           } else {
-            Alert.alert(
-              "Subscription Required",
-              "You must be a premium subscriber to book events and services.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Subscribe Now", onPress: () => console.log('Navigate to subscription screen') }
-              ]
-            );
+            setSubscriptionModalVisible(true);
           }
         }}
       >
@@ -143,6 +138,14 @@ export default function OfferingsScreen() {
         visible={modalVisible} 
         offering={selectedOffering} 
         onClose={() => setModalVisible(false)} 
+      />
+      <SubscriptionModal
+        visible={subscriptionModalVisible}
+        onClose={() => setSubscriptionModalVisible(false)}
+        onSubscribe={() => {
+          setSubscriptionModalVisible(false);
+          console.log('Navigate to subscription screen');
+        }}
       />
     </SafeAreaView>
   );
