@@ -33,23 +33,15 @@ exports.initiateBooking = async (req, res) => {
             final_price = 0;
         }
         
-        // Attempt to insert into the Bookings table
-        let booking_id = null;
-        try {
-            // First attempt with explicit final price mapping if the columns exist natively
-            const [result] = await db.query(
-                `INSERT INTO bookings (user_id, offering_id, status, final_price) VALUES (?, ?, ?, ?)`,
-                [user_id, offering_id, 'initiated', final_price]
-            );
-            booking_id = result.insertId;
-        } catch (schemaErr) {
-            // Fallback for strict database schema constraints
-            const [fallbackResult] = await db.query(
-                `INSERT INTO bookings (user_id, offering_id, status) VALUES (?, ?, ?)`,
-                [user_id, offering_id, 'initiated']
-            );
-            booking_id = fallbackResult.insertId;
-        }
+        // Ensure the mock user exists to satisfy foreign key constraints
+        await db.query(`INSERT IGNORE INTO users (id, name, email) VALUES (?, ?, ?)`, [user_id, 'Demo User', 'demo@example.com']);
+
+        // Insert into the Bookings table natively matching the schema
+        const [result] = await db.query(
+            `INSERT INTO bookings (user_id, offering_id, discount_code, discount_amount, final_price, status) VALUES (?, ?, ?, ?, ?, ?)`,
+            [user_id, offering_id, discount_code || null, discount_amount, final_price, 'initiated']
+        );
+        const booking_id = result.insertId;
 
         // Return strictly formatted JSON response mapping the controller logic
         return res.status(200).json({
