@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,6 +20,7 @@ interface Offering {
 }
 
 export default function OfferingsScreen() {
+  const router = useRouter();
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -144,7 +146,7 @@ export default function OfferingsScreen() {
         onClose={() => setSubscriptionModalVisible(false)}
         onSubscribe={() => {
           setSubscriptionModalVisible(false);
-          console.log('Navigate to subscription screen');
+          router.push('/subscription');
         }}
       />
     </SafeAreaView>
