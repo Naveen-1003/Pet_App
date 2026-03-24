@@ -1,127 +1,101 @@
 ```markdown
-# 🐾 Pets Point App
+# 🐾 Pets Point
 
-A full-stack, subscription-based mobile application for pet owners. Built with React Native (Expo), Node.js (Express), and MySQL. 
+A full-stack, subscription-based mobile application for pet owners to discover and book premium events and services. Built with React Native (Expo), Node.js (Express), and MySQL.
 
-## 📂 Project Structure
-This repository is a monorepo containing two main directories:
-* `/backend`: Node.js Express API and MySQL database configuration.
-* `/mobile`: React Native Expo mobile application.
-
----
-
-## 🛠️ Prerequisites
-Before you begin, ensure you have the following installed on your machine:
-* [Node.js](https://nodejs.org/) (v18 or higher)
-* [MySQL Server](https://dev.mysql.com/downloads/installer/) (Running locally)
-* [Expo Go](https://expo.dev/go) app installed on your physical iOS or Android device.
+## ✨ Features Implemented
+* **Modern UI/UX:** Welcoming user dashboard, sunset-themed color palette, and native animated Skeleton Loaders for optimal perceived performance.
+* **Optimized Data Fetching:** Utilizes TanStack Query (React Query) for automatic caching, background refetching, and robust loading/error state management.
+* **Freemium Product Model:** Intelligent database-driven gating that allows free users to book standard events, while locking `is_premium_only` offerings behind a paywall.
+* **Discount & Booking Engine:** Backend controllers that securely process percentage-based and flat-rate discount codes before redirecting users to external provider payment links.
+* **Subscription Management:** Full-stack integration allowing users to upgrade their accounts to unlock premium features, supported by a custom Node.js mock payment gateway (and designed for Razorpay Payment Links API integration).
 
 ---
 
-## ⚙️ 1. Backend Setup
+## 🗄️ Database Schema
+The backend runs on MySQL. Run `node seed.js` to automatically drop, rebuild, and seed these tables with dummy data.
 
-Open a terminal and navigate to the backend directory:
+### 1. `Users` Table
+Stores user profile data and their current subscription status.
+```sql
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    is_subscribed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 2. `Offerings` Table
+Stores the available pet events and services. Features a freemium flag (`is_premium_only`) to restrict access to non-subscribers.
+```sql
+CREATE TABLE Offerings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('event', 'service') NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    provider VARCHAR(255) NOT NULL,
+    base_price DECIMAL(10, 2) NOT NULL,
+    is_premium_only BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 3. `Bookings` Table
+Logs initiated bookings, tracking which user booked which offering, any applied discounts, and the final calculated price.
+```sql
+CREATE TABLE Bookings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    offering_id INT NOT NULL,
+    discount_code VARCHAR(50),
+    final_price DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'initiated',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (offering_id) REFERENCES Offerings(id)
+);
+```
+
+### 4. `Subscription_Payments` Table
+Records the transaction history of users purchasing the Premium Pet Pass.
+```sql
+CREATE TABLE Subscription_Payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    razorpay_payment_id VARCHAR(255),
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_status VARCHAR(50) DEFAULT 'success',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+);
+```
+
+---
+
+## 🛠️ Tech Stack
+* **Frontend:** React Native, Expo Router, Expo Go, TanStack Query (React Query), Axios.
+* **Backend:** Node.js, Express.js, Zod (Input Validation).
+* **Database:** MySQL (mysql2 promise pool).
+
+---
+
+## 🚀 Quick Setup Guide
+
+### 1. Start the Backend
 ```bash
 cd backend
-```
-
-### Install Dependencies
-```bash
 npm install
+# Ensure MySQL is running and your .env file is configured with DB credentials
+node seed.js # Rebuilds and seeds the database
+npm start # Or 'node src/index.js'
 ```
 
-### Configure Environment Variables
-Create a `.env` file in the root of the `/backend` folder and add your database and payment gateway credentials:
-
-```env
-PORT=3000
-
-# MySQL Database Credentials
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=vibe_pets_db
-
-# Razorpay Test Keys
-RAZORPAY_KEY_ID=rzp_test_Rv8cTIJoSHbhQM
-RAZORPAY_KEY_SECRET=O1Lm58aNKCamcB2xbLgUe0WX
-```
-
-### Setup the Database
-1. Open your MySQL client (like MySQL Workbench or DBeaver) and create the database:
-   ```sql
-   CREATE DATABASE vibe_pets_db;
-   ```
-2. Run the seed script to automatically build the tables and insert dummy pet events and services:
-   ```bash
-   node seed.js
-   ```
-
-### Start the Server
-```bash
-node src/index.js
-# Or use 'npx nodemon src/index.js' for auto-reloading during development
-```
-*The backend should now be running on `http://localhost:3000`.*
-
----
-
-## 📱 2. Frontend (Mobile App) Setup
-
-Open a **new, separate terminal window** and navigate to the mobile directory:
+### 2. Start the Mobile App
 ```bash
 cd mobile
-```
-
-### Install Dependencies
-```bash
 npm install
-```
-
-### ⚠️ IMPORTANT: Configure the Backend IP Address
-Mobile apps running on physical devices cannot connect to `localhost`. You must point the app to your computer's local Wi-Fi IP address.
-
-1. Find your computer's IPv4 address (e.g., `192.168.31.100`).
-2. Open `mobile/utils/api.ts` (or wherever your base URL is defined).
-3. Update the URL to match your IP:
-   ```typescript
-   // Replace with your actual Wi-Fi IP address
-   export const getBackendUrl = () => '[http://192.168.31.100:3000](http://192.168.31.100:3000)';
-   ```
-*(Note: If you are using an Android Emulator instead of a physical phone, change this IP to `http://10.0.2.2:3000`)*.
-
-### Start the Expo Bundler
-```bash
+# Open mobile/utils/api.ts and change 'localhost' to your computer's Wi-Fi IP Address!
 npx expo start --clear
 ```
-
----
-
-## 🚀 3. How to View the App
-
-Once the Expo bundler starts, it will display a large QR code in your terminal. Here are the ways you can view the app:
-
-### Option A: Physical Mobile Device (Recommended)
-1. Ensure your phone and your computer are connected to the **exact same Wi-Fi network**.
-2. Open the **Expo Go** app on your phone.
-3. **Android:** Tap "Scan QR Code" in the Expo Go app and scan the terminal code.
-4. **iOS:** Open your iPhone's default Camera app, scan the QR code, and tap the "Open in Expo Go" notification.
-
-### Option B: Android Emulator
-1. Open Android Studio and launch a Virtual Device (AVD).
-2. Once the emulator is running, go to your Expo terminal and press `a`.
-3. Expo will automatically install the app on the emulator and launch it.
-
-### Option C: iOS Simulator (Mac Only)
-1. Open Xcode and launch a Simulator.
-2. In your Expo terminal, press `i`.
-
-### Option D: Web Browser
-1. In your Expo terminal, press `w`.
-2. The app will open in your default web browser at `http://localhost:8081`. *(Note: Some native mobile APIs or strictly mobile layout features may render differently on the web).*
-
----
-
-## 🧪 Troubleshooting
-* **"Network Error" on Mobile:** Ensure your laptop's Firewall is not blocking Node.js connections on port 3000. Double-check that the IP address in your Axios config matches your computer's current Wi-Fi IP.
-* **Database Connection Failed:** Verify that MySQL is actively running on your machine and that the credentials in your `backend/.env` file are perfectly accurate.
+Scan the QR code with the **Expo Go** app on your physical device (must be on the same Wi-Fi network), or press `a` to run on an Android Emulator.
