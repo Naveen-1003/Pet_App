@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const bookingRoutes = require('./routes/bookingRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const errorHandler = require('./middleware/errorHandler');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const db = require('./config/db');
 
@@ -36,6 +37,9 @@ app.use('/api/bookings', bookingRoutes);
 
 // Subscription Routes
 app.use('/api/subscriptions', subscriptionRoutes);
+
+// Global Error Handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
