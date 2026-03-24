@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -21,10 +22,7 @@ interface Offering {
 
 export default function OfferingsScreen() {
   const router = useRouter();
-  const [offerings, setOfferings] = useState<Offering[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedOffering, setSelectedOffering] = useState<Offering | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
@@ -32,29 +30,19 @@ export default function OfferingsScreen() {
   const { theme } = useTheme();
   const { user } = useUser();
 
-  const fetchOfferings = async () => {
-    try {
-      setError(null);
-      const url = `${getBackendUrl()}/api/offerings`;
-      const response = await axios.get(url);
-      setOfferings(response.data);
-    } catch (err: any) {
-      console.warn("Error fetching offerings:", err.message);
-      setError("Network Error: Could not reach the server.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const { data: offerings = [], isLoading: loading, isError, error: queryError, refetch } = useQuery({
+    queryKey: ['offerings'],
+    queryFn: async () => {
+      const response = await axios.get(`${getBackendUrl()}/api/offerings`);
+      return response.data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchOfferings();
-  }, []);
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchOfferings();
-  }, []);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const renderItem = ({ item }: { item: Offering }) => (
     <View style={[styles.card, { backgroundColor: theme.card }]}>
@@ -101,14 +89,16 @@ export default function OfferingsScreen() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <SafeAreaView style={[styles.centered, { backgroundColor: theme.background }]}>
         <Text style={[styles.errorText, { color: theme.text }]}>Oops! Something went wrong.</Text>
-        <Text style={[styles.errorSubtext, { color: theme.text }]}>{error}</Text>
+        <Text style={[styles.errorSubtext, { color: theme.text }]}>
+          {queryError instanceof Error ? queryError.message : "Network Error: Could not reach the server."}
+        </Text>
         <TouchableOpacity 
           style={[styles.retryButton, { backgroundColor: theme.primary }]} 
-          onPress={() => { setLoading(true); fetchOfferings(); }}
+          onPress={() => refetch()}
         >
           <Text style={styles.retryButtonText}>Try Again</Text>
         </TouchableOpacity>
