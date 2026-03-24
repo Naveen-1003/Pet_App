@@ -19,6 +19,7 @@ interface Offering {
   provider_name: string;
   base_price: string;
   provider_payment_url: string;
+  is_premium_only: boolean;
 }
 
 export default function OfferingsScreen() {
@@ -60,6 +61,13 @@ export default function OfferingsScreen() {
             {item.type.toUpperCase()}
           </Text>
         </View>
+        {Boolean(item.is_premium_only) && (
+          <View style={[styles.badge, { backgroundColor: '#FFD70033', marginLeft: 8 }]}> 
+            <Text style={[styles.badgeText, { color: '#FFD700' }]}>
+              ★ PREMIUM
+            </Text>
+          </View>
+        )}
       </View>
 
       <Text style={[styles.description, { color: theme.text + '99' }]}>{item.description}</Text>
@@ -68,11 +76,11 @@ export default function OfferingsScreen() {
       <TouchableOpacity 
         style={[styles.bookButton, { backgroundColor: theme.primary }]}
         onPress={() => {
-          if (user?.isSubscribed) {
+          if (item.is_premium_only && !user?.isSubscribed) {
+            setSubscriptionModalVisible(true);
+          } else {
             setSelectedOffering(item);
             setModalVisible(true);
-          } else {
-            setSubscriptionModalVisible(true);
           }
         }}
       >
