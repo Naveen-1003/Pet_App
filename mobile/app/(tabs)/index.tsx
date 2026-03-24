@@ -1,186 +1,145 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { Ionicons } from '@expo/vector-icons';
-import { AnimatedGradient } from '../../components/ui/AnimatedGradient';
+import { useTheme } from '../../context/ThemeContext';
+import { colors } from '../../constants/theme';
 
-export default function Index() {
-  const { theme } = useTheme();
+export default function HomeScreen() {
   const { user } = useUser();
   const router = useRouter();
+  const { themeType } = useTheme();
+
+  const theme = colors[themeType as keyof typeof colors] || colors.light;
 
   return (
-    <AnimatedGradient>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.container}>
-          
-          {/* Greeting Header */}
-          <View style={styles.headerContainer}>
-            <Text style={[styles.greeting, { color: theme.text }]}>
-              Hello, {user?.name || 'Pet Lover'}! 👋
-            </Text>
-            <Text style={[styles.subGreeting, { color: theme.text + 'BA' }]}>
-              Ready for another pawsome day?
-            </Text>
-          </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={[styles.greeting, { color: theme.primary }]}>
+            Hello, {user?.name || 'Pet Lover'}!
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.text }]}>
+            Welcome to your Vibe Pets dashboard.
+          </Text>
+        </View>
 
-          {/* Subscription Status Card */}
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            {user?.isSubscribed ? (
-              <View style={styles.premiumBadgeContainer}>
-                <Ionicons name="star" size={36} color="#f5a623" style={{ marginBottom: 8 }} />
-                <Text style={[styles.premiumText, { color: theme.text }]}>✨ Premium Member ✨</Text>
-                <Text style={[styles.premiumSubtext, { color: theme.text + '99' }]}>
-                  All VIP features are unlocked for your beloved pets.
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.promoContainer}>
-                <View style={[styles.promoIcon, { backgroundColor: theme.primary + '20' }]}>
-                  <Ionicons name="gift-outline" size={32} color={theme.primary} />
-                </View>
-                <Text style={[styles.promoTitle, { color: theme.text }]}>Upgrade Your Experience</Text>
-                <Text style={[styles.promoText, { color: theme.text + '99' }]}>
-                  Unlock all features with a Premium Pass
-                </Text>
-                <TouchableOpacity 
-                  style={[styles.promoButton, { backgroundColor: theme.primary }]}
-                  onPress={() => router.push('/subscription')}
-                >
-                  <Text style={styles.promoButtonText}>Get Premium</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-
-          {/* Quick Action Button */}
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: theme.text, shadowColor: theme.text }]}
-            onPress={() => router.push('/offerings')}
-          >
-            <View style={styles.actionButtonContent}>
-              <Ionicons name="calendar-outline" size={24} color={theme.background} />
-              <Text style={[styles.actionButtonText, { color: theme.background }]}>
-                Discover Events & Services
-              </Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+          {user?.isSubscribed ? (
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumText}>✨ Premium Member ✨</Text>
             </View>
-          </TouchableOpacity>
-          
-          <View style={styles.illustrationContainer}>
-             <Ionicons name="paw" size={120} color={theme.primary + '11'} />
-          </View>
+          ) : (
+            <View style={styles.upsellContainer}>
+              <Text style={[styles.upsellText, { color: theme.text }]}>
+                Unlock all features with a Premium Pass
+              </Text>
+              <TouchableOpacity
+                style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
+                onPress={() => router.push('/subscription')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.buttonText}>Get Premium</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
-        </ScrollView>
-      </SafeAreaView>
-    </AnimatedGradient>
+        <View style={styles.spacer} />
+
+        <TouchableOpacity
+          style={[styles.mainAction, { backgroundColor: theme.primary }]}
+          onPress={() => router.push('/offerings')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.mainActionText}>Discover Events & Services</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
   },
-  container: {
-    flexGrow: 1,
-    padding: 24,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
   },
-  headerContainer: {
-    marginTop: 20,
-    marginBottom: 32,
+  header: {
+    marginBottom: 40,
   },
   greeting: {
-    fontSize: 34,
-    fontWeight: '900',
+    fontSize: 32,
+    fontWeight: '800',
     marginBottom: 8,
-    letterSpacing: 0.5,
   },
-  subGreeting: {
-    fontSize: 18,
+  subtitle: {
+    fontSize: 16,
     fontWeight: '500',
+    opacity: 0.8,
   },
   card: {
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 24,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-    marginBottom: 24,
+    shadowRadius: 12,
+    elevation: 5,
+    marginBottom: 32,
   },
-  premiumBadgeContainer: {
+  premiumBadge: {
     alignItems: 'center',
-    paddingVertical: 16,
+    justifyContent: 'center',
+    paddingVertical: 12,
   },
   premiumText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  premiumSubtext: {
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  promoContainer: {
-    alignItems: 'center',
-  },
-  promoIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  promoTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#F5A623', 
   },
-  promoText: {
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  promoButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    width: '100%',
+  upsellContainer: {
     alignItems: 'center',
   },
-  promoButtonText: {
+  upsellText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subscribeButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  buttonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontWeight: '700',
   },
-  actionButton: {
-    paddingVertical: 20,
-    borderRadius: 20,
-    marginBottom: 24,
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  actionButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 12,
-  },
-  illustrationContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  spacer: {
     flex: 1,
-    paddingTop: 20,
-  }
+  },
+  mainAction: {
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  mainActionText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
 });
