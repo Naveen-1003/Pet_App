@@ -11,6 +11,7 @@ export interface User {
 interface UserContextType {
   user: User | null;
   setIsSubscribed: (status: boolean) => void;
+  login: (name: string) => void;
 }
 
 // Create the context with default values
@@ -21,12 +22,12 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  // Initialize with the mock user
-  const [user, setUser] = useState<User | null>({
-    id: 1,
-    name: "Demo User",
-    isSubscribed: false,
-  });
+  // Initialize with null
+  const [user, setUser] = useState<User | null>(null);
+
+  const login = (name: string) => {
+    setUser({ id: 1, name, isSubscribed: false });
+  };
 
   // Function to toggle subscription status
   const setIsSubscribed = (status: boolean) => {
@@ -34,7 +35,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setIsSubscribed }}>
+    <UserContext.Provider value={{ user, setIsSubscribed, login }}>
       {children}
     </UserContext.Provider>
   );
