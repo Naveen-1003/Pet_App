@@ -1,5 +1,5 @@
 ```markdown
-# 🐾 Vibe Pet App
+# 🐾 Pets Point App
 
 A full-stack, subscription-based mobile application for pet owners. Built with React Native (Expo), Node.js (Express), and MySQL. 
 

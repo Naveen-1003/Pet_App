@@ -39,7 +39,13 @@ export default function LoginScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <View style={styles.headerContainer}>
-          <Text style={[styles.title, { color: theme.primary }]}>🐾 Vibe Pets</Text>
+          <Text 
+            style={[styles.title, { color: theme.primary }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+          >
+            🐾 Pets Point
+          </Text>
           <Text style={[styles.subtitle, { color: theme.text }]}>
             Your pet's best life, all in one place.
           </Text>
@@ -88,11 +94,14 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
     marginBottom: 48,
+    width: '100%',
   },
   title: {
     fontSize: 42,
     fontWeight: '800',
     marginBottom: 12,
+    width: '100%',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,

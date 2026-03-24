@@ -27,10 +27,10 @@ const createPaymentLink = asyncHandler(async (req, res) => {
     const paymentLink = await razorpay.paymentLink.create({
         amount: 99900,
         currency: "INR",
-        description: "Vibe Pets Premium",
+        description: "Pets Point Premium",
         customer: {
             name: "Demo User",
-            email: "demo@vibepets.com"
+            email: "demo@petspoint.com"
         },
         notify: {
             sms: false,

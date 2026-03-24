@@ -21,7 +21,7 @@ export default function HomeScreen() {
             Hello, {user?.name || 'Pet Lover'}!
           </Text>
           <Text style={[styles.subtitle, { color: theme.text }]}>
-            Welcome to your Vibe Pets dashboard.
+            Welcome to your Pets Point dashboard.
           </Text>
         </View>
 
