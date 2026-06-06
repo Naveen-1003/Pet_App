@@ -20,7 +20,6 @@ interface Offering {
   base_price: string;
   provider_payment_url: string;
   is_premium_only: boolean;
-  is_premium_only: boolean;
 }
 
 const getContextImage = (item: Offering) => {
