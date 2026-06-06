@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert, ScrollView, Image } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,7 +20,51 @@ interface Offering {
   base_price: string;
   provider_payment_url: string;
   is_premium_only: boolean;
+  is_premium_only: boolean;
 }
+
+const getContextImage = (item: Offering) => {
+  const text = (item.title + ' ' + item.description).toLowerCase();
+  
+  if (text.includes('groom') || text.includes('bath') || text.includes('wash')) {
+    return 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=600&q=80'; // Dog bath
+  }
+  if (text.includes('health') || text.includes('vet') || text.includes('medical') || text.includes('expo')) {
+    return 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=600&q=80'; // Vet
+  }
+  if (text.includes('board') || text.includes('overnight') || text.includes('sleep') || text.includes('stay')) {
+    return 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=600&q=80'; // Sleeping dog
+  }
+  if (text.includes('train') || text.includes('puppy') || text.includes('basic') || text.includes('obedienc')) {
+    return 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80'; // Obedient dog
+  }
+  if (text.includes('walk') || text.includes('park') || text.includes('meetup')) {
+    return 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80'; // Dog park
+  }
+  
+  // Defaults based on type
+  if (item.type === 'event') {
+    return 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=600&q=80'; // Dogs playing
+  }
+  return 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=600&q=80'; // Happy dog
+};
+
+const FallbackImage = ({ uri, style }: { uri: string, style: any }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError || !uri) {
+    // Fallback to our local hero image if the network image fails
+    return <Image source={require('../../assets/images/login_hero.png')} style={style} />;
+  }
+  
+  return (
+    <Image 
+      source={{ uri }} 
+      style={style} 
+      onError={() => setHasError(true)}
+    />
+  );
+};
 
 export default function OfferingsScreen() {
   const router = useRouter();
@@ -48,44 +92,50 @@ export default function OfferingsScreen() {
 
   const renderItem = ({ item }: { item: Offering }) => (
     <View style={[styles.card, { backgroundColor: theme.card }]}>
-      <View style={styles.cardHeader}>
-        <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
-        <Text style={[styles.price, { color: theme.primary }]}>
-          {parseFloat(item.base_price) === 0 ? 'Free' : `$${item.base_price}`}
-        </Text>
-      </View>
-      
-      <View style={styles.badgeContainer}>
-        <View style={[styles.badge, { backgroundColor: theme.primary + '33' }]}> 
-          <Text style={[styles.badgeText, { color: theme.primary }]}>
-            {item.type.toUpperCase()}
+      <FallbackImage 
+        uri={getContextImage(item)} 
+        style={styles.bannerImage} 
+      />
+      <View style={styles.textContent}>
+        <View style={styles.cardHeader}>
+          <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
+          <Text style={[styles.price, { color: theme.primary }]}>
+            {parseFloat(item.base_price) === 0 ? 'Free' : `₹${item.base_price}`}
           </Text>
         </View>
-        {Boolean(item.is_premium_only) && (
-          <View style={[styles.badge, { backgroundColor: '#FFD70033', marginLeft: 8 }]}> 
-            <Text style={[styles.badgeText, { color: '#FFD700' }]}>
-              ★ PREMIUM
+        
+        <View style={styles.badgeContainer}>
+          <View style={[styles.badge, { backgroundColor: theme.primary + '33' }]}> 
+            <Text style={[styles.badgeText, { color: theme.primary }]}>
+              {item.type.toUpperCase()}
             </Text>
           </View>
-        )}
-      </View>
+          {Boolean(item.is_premium_only) && (
+            <View style={[styles.badge, { backgroundColor: '#FFD70033', marginLeft: 8 }]}> 
+              <Text style={[styles.badgeText, { color: '#FFD700' }]}>
+                ★ PREMIUM
+              </Text>
+            </View>
+          )}
+        </View>
 
-      <Text style={[styles.description, { color: theme.text + '99' }]}>{item.description}</Text>
-      <Text style={[styles.provider, { color: theme.text + 'B3' }]}>By: {item.provider_name}</Text>
-      
-      <TouchableOpacity 
-        style={[styles.bookButton, { backgroundColor: theme.primary }]}
-        onPress={() => {
-          if (item.is_premium_only && !user?.isSubscribed) {
-            setSubscriptionModalVisible(true);
-          } else {
-            setSelectedOffering(item);
-            setModalVisible(true);
-          }
-        }}
-      >
-        <Text style={styles.bookButtonText}>Book Now</Text>
-      </TouchableOpacity>
+        <Text style={[styles.description, { color: theme.text + '99' }]}>{item.description}</Text>
+        <Text style={[styles.provider, { color: theme.text + 'B3' }]}>By: {item.provider_name}</Text>
+        
+        <TouchableOpacity 
+          style={[styles.bookButton, { backgroundColor: theme.primary }]}
+          onPress={() => {
+            if (item.is_premium_only && !user?.isSubscribed) {
+              setSubscriptionModalVisible(true);
+            } else {
+              setSelectedOffering(item);
+              setModalVisible(true);
+            }
+          }}
+        >
+          <Text style={styles.bookButtonText}>Book Now</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -179,7 +229,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    padding: 20,
     borderRadius: 16,
     marginBottom: 16,
     shadowColor: '#000',
@@ -187,6 +236,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
+    overflow: 'hidden',
+  },
+  bannerImage: {
+    width: '100%',
+    height: 180,
+  },
+  textContent: {
+    padding: 16,
   },
   cardHeader: {
     flexDirection: 'row',

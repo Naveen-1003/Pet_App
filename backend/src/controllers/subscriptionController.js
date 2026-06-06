@@ -24,8 +24,10 @@ const processMockPayment = asyncHandler(async (req, res) => {
 });
 
 const createPaymentLink = asyncHandler(async (req, res) => {
+    const { user_id, callback_url } = req.body || {};
+
     const paymentLink = await razorpay.paymentLink.create({
-        amount: 99900,
+        amount: 49900,
         currency: "INR",
         description: "Pets Point Premium",
         customer: {
@@ -35,7 +37,9 @@ const createPaymentLink = asyncHandler(async (req, res) => {
         notify: {
             sms: false,
             email: false
-        }
+        },
+        callback_url: callback_url || undefined,
+        callback_method: "get"
     });
 
     res.status(200).json({
@@ -55,7 +59,7 @@ const verifyPaymentStatus = asyncHandler(async (req, res) => {
         await db.query(
             `INSERT INTO Subscription_Payments (user_id, razorpay_payment_id, amount, payment_status) 
              VALUES (?, ?, ?, 'success')`,
-            [user_id, payment_link_id, 999] // 999 INR
+            [user_id, payment_link_id, 499] // 499 INR
         );
         return res.status(200).json({ success: true });
     } else {
@@ -63,8 +67,36 @@ const verifyPaymentStatus = asyncHandler(async (req, res) => {
     }
 });
 
+const paymentCallback = asyncHandler(async (req, res) => {
+    const { razorpay_payment_link_status, razorpay_payment_link_id, user_id, redirect_to } = req.query;
+
+    if (razorpay_payment_link_status === 'paid' || razorpay_payment_link_status === 'partially_paid') {
+        // Mark user as subscribed
+        await db.query(`UPDATE Users SET is_subscribed = TRUE WHERE id = ?`, [user_id]);
+        
+        // Ensure we don't insert duplicate payment records if the user refreshes
+        const [existing] = await db.query(`SELECT id FROM Subscription_Payments WHERE razorpay_payment_id = ?`, [razorpay_payment_link_id]);
+        
+        if (existing.length === 0) {
+            await db.query(
+                `INSERT INTO Subscription_Payments (user_id, razorpay_payment_id, amount, payment_status) 
+                 VALUES (?, ?, ?, 'success')`,
+                [user_id, razorpay_payment_link_id, 499]
+            );
+        }
+    }
+    
+    // Redirect back to the mobile app
+    if (redirect_to) {
+        res.redirect(redirect_to);
+    } else {
+        res.status(200).send("Payment processed successfully! You can close this window and return to the app.");
+    }
+});
+
 module.exports = {
     processMockPayment,
     createPaymentLink,
-    verifyPaymentStatus
+    verifyPaymentStatus,
+    paymentCallback
 };

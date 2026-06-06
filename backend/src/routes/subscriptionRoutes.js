@@ -7,5 +7,6 @@ const { verifySubscriptionSchema } = require('../validations/schemas');
 router.post('/subscribe', subscriptionController.processMockPayment);
 router.post('/create-link', subscriptionController.createPaymentLink);
 router.post('/verify-link', validate(verifySubscriptionSchema), subscriptionController.verifyPaymentStatus);
+router.get('/callback', subscriptionController.paymentCallback);
 
 module.exports = router;

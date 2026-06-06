@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Linking } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
+import * as ExpoLinking from 'expo-linking';
+import { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/api';
@@ -11,49 +13,33 @@ export default function SubscriptionScreen() {
   const { theme } = useTheme();
   const { user, setIsSubscribed } = useUser();
   const [loading, setLoading] = useState(false);
-  const [paymentLinkId, setPaymentLinkId] = useState<string | null>(null);
+  const urlParams = ExpoLinking.useURL();
+
+  useEffect(() => {
+    if (urlParams) {
+      const parsed = ExpoLinking.parse(urlParams);
+      if (parsed.queryParams?.payment_success === 'true') {
+        setIsSubscribed(true);
+      }
+    }
+  }, [urlParams]);
 
   const handleSubscribe = async () => {
     setLoading(true);
     try {
       const url = `${getBackendUrl()}/api/subscriptions/create-link`;
-      const response = await axios.post(url, { user_id: user?.id || 1 });
+      const deepLink = ExpoLinking.createURL('/subscription', { queryParams: { payment_success: 'true' } });
+      const callbackUrl = `${getBackendUrl()}/api/subscriptions/callback?user_id=${user?.id || 1}&redirect_to=${encodeURIComponent(deepLink)}`;
+      
+      const response = await axios.post(url, { user_id: user?.id || 1, callback_url: callbackUrl });
       
       if (response.data.success && response.data.short_url) {
         // Open the Razorpay payment link in the browser
-        await Linking.openURL(response.data.short_url);
-        // Save the payment link ID for verification
-        setPaymentLinkId(response.data.id);
+        await ExpoLinking.openURL(response.data.short_url);
       }
     } catch (err: any) {
       console.warn("Payment link creation failed:", err);
       Alert.alert("Error", err.response?.data?.error || "Could not generate payment link.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    if (!paymentLinkId) return;
-    setLoading(true);
-    try {
-      const url = `${getBackendUrl()}/api/subscriptions/verify-link`;
-      const response = await axios.post(url, { 
-        payment_link_id: paymentLinkId, 
-        user_id: user?.id || 1 
-      });
-      
-      if (response.data.success) {
-        setIsSubscribed(true);
-        setPaymentLinkId(null); // Reset after successful verification
-        Alert.alert("Success!", "Thank you for subscribing to Premium Pet Pass!");
-      } else {
-        // Payment not yet completed
-        Alert.alert("Payment Pending", response.data.message || "Payment not yet completed, please try again.");
-      }
-    } catch (err: any) {
-      console.warn("Verification failed:", err);
-      Alert.alert("Error", "Could not verify payment status.");
     } finally {
       setLoading(false);
     }
@@ -64,9 +50,10 @@ export default function SubscriptionScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <View style={styles.header}>
-            <View style={[styles.iconContainer, { backgroundColor: theme.primary + '20' }]}>
-              <Ionicons name="star" size={40} color={theme.primary} />
-            </View>
+            <Image 
+              source={require('../../assets/images/premium_pet.png')} 
+              style={styles.heroImage} 
+            />
             <Text style={[styles.title, { color: theme.text }]}>Premium Pet Pass</Text>
           </View>
           
@@ -95,44 +82,25 @@ export default function SubscriptionScreen() {
               <Text style={[styles.successSubtext, { color: theme.text + '99' }]}>Your subscription is active and all features are unlocked.</Text>
             </View>
           ) : (
-            <View style={styles.actionContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={[styles.priceTag, { color: theme.text }]}>$9.99</Text>
-                <Text style={[styles.priceCycle, { color: theme.text + '99' }]}>/ month</Text>
+              <View style={styles.actionContainer}>
+                <View style={styles.priceContainer}>
+                  <Text style={[styles.priceTag, { color: theme.text }]}>₹499</Text>
+                  <Text style={[styles.priceCycle, { color: theme.text + '99' }]}>/ month</Text>
+                </View>
+                
+                <TouchableOpacity 
+                  style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
+                  onPress={handleSubscribe}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.subscribeText}>Upgrade Now</Text>
+                  )}
+                </TouchableOpacity>
+                <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Cancel anytime. Secure automated payment via Razorpay.</Text>
               </View>
-              
-              {!paymentLinkId ? (
-                <>
-                  <TouchableOpacity 
-                    style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
-                    onPress={handleSubscribe}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#FFF" />
-                    ) : (
-                      <Text style={styles.subscribeText}>Upgrade Now</Text>
-                    )}
-                  </TouchableOpacity>
-                  <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Cancel anytime. Secure payment via Razorpay.</Text>
-                </>
-              ) : (
-                <>
-                  <TouchableOpacity 
-                    style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
-                    onPress={handleVerify}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#FFF" />
-                    ) : (
-                      <Text style={styles.subscribeText}>I Have Paid - Verify Status</Text>
-                    )}
-                  </TouchableOpacity>
-                  <Text style={[styles.guaranteeText, { color: theme.text + '80' }]}>Complete your payment in the browser, then return here to verify.</Text>
-                </>
-              )}
-            </View>
           )}
         </View>
       </ScrollView>
@@ -169,13 +137,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+  heroImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    marginBottom: 20,
+    borderWidth: 4,
+    borderColor: '#FF8C00',
   },
   header: {
     alignItems: 'center',

@@ -58,7 +58,7 @@ export default function BookingModal({ visible, offering, onClose }: BookingModa
         <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
           <Text style={[styles.title, { color: theme.text }]}>Book {offering.type === 'event' ? 'Event' : 'Service'}</Text>
           <Text style={[styles.offeringTitle, { color: theme.text }]}>{offering.title}</Text>
-          <Text style={[styles.price, { color: theme.primary }]}>Base Price: ${offering.base_price}</Text>
+          <Text style={[styles.price, { color: theme.primary }]}>Base Price: ₹{offering.base_price}</Text>
 
           <View style={styles.inputContainer}>
              <Text style={[styles.label, { color: theme.text }]}>Discount Code (Optional):</Text>

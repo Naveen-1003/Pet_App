@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../context/UserContext';
@@ -17,33 +17,46 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={[styles.greeting, { color: theme.primary }]}>
-            Hello, {user?.name || 'Pet Lover'}!
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.text }]}>
-            Welcome to your Pets Point dashboard.
-          </Text>
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.greeting, { color: theme.primary }]}>
+              Hello, {user?.name || 'Pet Lover'}!
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.text }]}>
+              Welcome to your Pets Point dashboard.
+            </Text>
+          </View>
+          <Image 
+            source={require('../../assets/images/home_profile.png')} 
+            style={styles.profileImage} 
+          />
         </View>
 
         <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.primary }]}>
-          {user?.isSubscribed ? (
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumText}>✨ Premium Member ✨</Text>
-            </View>
-          ) : (
-            <View style={styles.upsellContainer}>
-              <Text style={[styles.upsellText, { color: theme.text }]}>
-                Unlock all features with a Premium Pass
-              </Text>
-              <TouchableOpacity
-                style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
-                onPress={() => router.push('/subscription')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.buttonText}>Get Premium</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.upsellContainer}>
+            <Image 
+              source={require('../../assets/images/premium_dog.png')} 
+              style={styles.premiumImage} 
+              resizeMode="cover"
+            />
+            {user?.isSubscribed ? (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.premiumText}>✨ Premium Member ✨</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={[styles.upsellText, { color: theme.text }]}>
+                  Unlock all features with a Premium Pass
+                </Text>
+                <TouchableOpacity
+                  style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
+                  onPress={() => router.push('/subscription')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.buttonText}>Get Premium</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
 
         <View style={styles.spacer} />
@@ -72,6 +85,13 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
+    paddingRight: 16,
   },
   greeting: {
     fontSize: 32,
@@ -82,6 +102,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     opacity: 0.8,
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FF8C00',
   },
   card: {
     borderRadius: 20,
@@ -106,12 +133,21 @@ const styles = StyleSheet.create({
   },
   upsellContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   upsellText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  premiumImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: '#FF8C00',
   },
   subscribeButton: {
     paddingVertical: 12,
